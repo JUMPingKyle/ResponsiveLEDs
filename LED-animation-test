@@ -1,0 +1,466 @@
+#include <FastLED.h>                 	   // https://github.com/FastLED/FastLED 
+#define NUM_LEDS 150              	  // Number of LEDs 
+#define DATA_PIN 2                 	 // Connect your addressable LED strip to this pin. 
+#define SENSITIVITY 1000         	  // Ranges from 0 to 1023 
+#define MAX_BRIGHTNESS 255          // Ranges from 0 to 255 
+#define ENVELOPE_PIN A0                  // Connect sound detector to this pin 
+#define SATURATION 255                    // Ranges from 0 to 255 
+#define MINVAL 80
+#define HUE_INIT 10 
+#define HUE_CHANGE 1 
+
+
+CRGB leds[NUM_LEDS];
+byte hue[NUM_LEDS];
+byte brightness[NUM_LEDS];
+byte sat[NUM_LEDS];
+
+int analogVal;
+int sat_val;
+int p_delay =20;
+bool first_run = true;
+int count = 1;
+int DELAY;
+
+void setup() {
+ /* Old set up code
+ FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
+ FastLED.clear();
+ FastLED.show();*/
+ Serial.begin(9600); 
+  pinMode(ENVELOPE_PIN, INPUT); 
+  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
+  /*for(int i = 0; i <= NUM_LEDS; i++){ 
+    brightness[i] = 100; 
+    hue[i] = 410; 
+  } */
+//Turn off all the LEDs 
+  for(int i=0; i <= NUM_LEDS; i++) { 
+     leds[i] = CRGB::Blue; 
+  } 
+//Update the LED strip 
+  FastLED.show();  
+}
+
+void loop() {
+  analogVal = analogRead(ENVELOPE_PIN); 
+	//Serial.println(analogVal); 
+	if(analogVal > SENSITIVITY){ 
+		analogVal = SENSITIVITY; 
+	} 
+	if(analogVal < MINVAL){ 
+		analogVal = 0; 
+	} 
+  //PurplePulse();
+  //PurpleGlow();
+  //SolidToRainbow();
+  //SatResponsiveSolidToRainbow();
+  //HueShift(); //Broken
+  //RedPulseSatReact();
+  //SatResponsiveTest();
+
+  OrangeRibbon(); //Swirling Orange Ribbon
+  //RedBlueRibbon(); //Swirling Red and Blue Ribbon.  I adjust the maping for val and now reacts pretty good brightness to volutme
+  FastLED.show();
+}
+
+void RedPulseSatReact(){
+  for(int i = 0; i <= NUM_LEDS; i++){
+   // leds[i] = CHSV(0,sat_val,bright_val);
+    FastLED.show();
+  }
+}
+void RedBlueRibbon(){ 
+ 
+  // GOOD color reference https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors
+  DELAY = map(analogVal, 0, SENSITIVITY+1, 100, 20); 
+  byte val = map(analogVal, 0, 50+1, 10, MAX_BRIGHTNESS); 
+  byte sat_vals = map(analogVal, MINVAL, 150, 200, 255);;
+  for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		brightness[NUM_LEDS-i] = brightness[NUM_LEDS-(i+1)]; 
+	} 
+	 for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		hue[NUM_LEDS-i] = hue[NUM_LEDS-(i+1)]; 
+	} 
+  for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		sat[NUM_LEDS-i] = sat[NUM_LEDS-(i+1)]; 
+	} 
+  Serial.println(val);
+  switch(count % 3){
+    case 0:
+    hue[0] = 10;
+    brightness[0] = val;
+    sat[0] = sat_vals;
+    break;
+    case 1:
+    hue[0] = 160;
+    brightness[0] = val;
+    sat[0] = sat_vals;
+    break;
+    case 2:
+    hue[0] = 5;
+    brightness[0] = val;
+    sat[0] = sat_vals;
+    break;
+    
+  }
+  for (int i = 0; i <= NUM_LEDS; i++){ 
+    leds[i] = CHSV(hue[i],255,brightness[i]); 
+  }
+  delay(DELAY);
+  count++;
+}
+
+void OrangeRibbon(){ 
+ 
+  // GOOD color reference https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors
+  DELAY = map(analogVal, 0, SENSITIVITY+1, 20, 1); 
+  byte val = map(analogVal, 0, SENSITIVITY+1, 0, MAX_BRIGHTNESS); 
+  byte sat_vals = map(analogVal, MINVAL, 150, 200, 255);;
+  for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		brightness[NUM_LEDS-i] = brightness[NUM_LEDS-(i+1)]; 
+	} 
+	 for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		hue[NUM_LEDS-i] = hue[NUM_LEDS-(i+1)]; 
+	} 
+  for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		sat[NUM_LEDS-i] = sat[NUM_LEDS-(i+1)]; 
+	} 
+  
+  switch(count % 5){
+    case 0:
+    hue[0] = 10;
+    brightness[0] = val;
+    sat[0] = 255;
+    break;
+    case 1:
+    hue[0] = 0;
+    brightness[0] = val;
+    sat[0] = 255;
+    break;
+    case 2:
+    hue[0] = 5;
+    brightness[0] = val;
+    sat[0] = 255;
+    break;
+    case 3:
+    hue[0] = 20;
+    brightness[0] = 255;
+    sat[0] = 255;
+    break;
+    case 4:
+    hue[0] = 15;
+    brightness[0] = 255;
+    sat[0] = 255;
+    break;
+  }
+  for (int i = 0; i <= NUM_LEDS; i++){ 
+    leds[i] = CHSV(hue[i],255,brightness[i]); 
+  }
+  delay(100);
+  count++;
+}
+
+
+void SatResponsiveTest(){ 
+  /*Notes from many hours of work
+  It is hard to keep track of exactly where in the code the program is when updating all the LEDS. I can seem to reliably pass the first 
+  LED brightness, hue and saturation info and for that to be passed up the chain without some issue. Passing live sat values always results in every LED besides the first being white.
+  It also blinks pretty rapidly so I set a 1 mil sec delay and that feels like it evens it out a lot
+  I can pass a sat value that affects the entire string at once, but I can't seem to get it to pass a value along the chain in a visible maner - I feel like I need values to slope into eachother 
+  from LED to LED on sat, other wise it jumping around a lot wont work.
+
+At least 3 colors makes for a fun band rotating
+  */
+
+  // GOOD color reference https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors
+  DELAY = map(analogVal, 0, SENSITIVITY+1, 20, 1); 
+  byte val = map(analogVal, 0, SENSITIVITY+1, 0, MAX_BRIGHTNESS); 
+  byte sat_vals = map(analogVal, MINVAL, 150, 200, 255);;
+  for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		brightness[NUM_LEDS-i] = brightness[NUM_LEDS-(i+1)]; 
+	} 
+	 for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		hue[NUM_LEDS-i] = hue[NUM_LEDS-(i+1)]; 
+	} 
+  for(int i = 1; i <= NUM_LEDS-1; i++){ 
+		sat[NUM_LEDS-i] = sat[NUM_LEDS-(i+1)]; 
+	} 
+  
+  switch(count % 5){
+    case 0:
+    hue[0] = 10;
+    brightness[0] = val;
+    sat[0] = 255;
+    break;
+    case 1:
+    hue[0] = 0;
+    brightness[0] = val;
+    sat[0] = 255;
+    break;
+    case 2:
+    hue[0] = 5;
+    brightness[0] = val;
+    sat[0] = 255;
+    break;
+    case 3:
+    hue[0] = 20;
+    brightness[0] = 255;
+    sat[0] = 255;
+    break;
+    case 4:
+    hue[0] = 15;
+    brightness[0] = 255;
+    sat[0] = 255;
+    break;
+  }
+  
+  for (int i = 0; i <= NUM_LEDS; i++){ 
+    //if(i % 50 == 0)  
+    leds[i] = CHSV(hue[i],255,brightness[i]); 
+    
+  }
+  delay(100);
+  /**/
+    
+  count++;
+  /*leds[0]= CHSV(val,sat_val,100);
+  bool first_run;
+  if (first_run){
+     SatTestSetup();
+  }else{
+    for(int i = 0; i <= NUM_LEDS; i++){ 
+      
+    Serial.println("Else loop");
+    switch(i % 3){
+      case 0:
+        leds[i] = CHSV(25, SATURATION, brightness[i]); 
+        break;
+      case 1:
+        leds[i] = CHSV(50, SATURATION, brightness[i]);
+        break;
+      case 2:
+        leds[i] = CHSV(0, SATURATION, brightness[i]);
+        break;
+    }
+  }
+  }*/
+  /*
+  for (int i = 0; i <= NUM_LEDS; i++){ 
+    Serial.println("tHere");
+    if(i % 50 == 0)getSatVal();
+    Serial.print("Sat value is: ");
+    Serial.println(sat_val);
+    leds[i] = CHSV(0,sat_val,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  */
+
+  
+	//brightness[0] = 25; 
+	
+		//leds[i] = CHSV(hue[i], SATURATION, brightness[i]); 
+} 
+void SatTestSetup(){
+  Serial.println(first_run);
+  first_run = false;
+  Serial.println(first_run);
+  for(int i = 0; i <= NUM_LEDS; i++){ 
+    switch(i % 3){
+      case 0:
+        leds[i] = CHSV(0, SATURATION, brightness[i]); 
+        break;
+      case 1:
+        leds[i] = CHSV(25, SATURATION, brightness[i]);
+        break;
+      case 2:
+        leds[i] = CHSV(50, SATURATION, brightness[i]);
+        break;
+    }
+  }
+}
+
+void SatResponsiveSolidToRainbow(){ 
+  // GOOD color reference https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors
+  double hue_start = 0;
+  double hue_finish = 128;
+  double temp = (hue_finish - hue_start);
+  double hue_ratio =  temp /  NUM_LEDS;
+  byte temp_hue;
+  int delayed = 5;
+  
+  
+  for (int i = 0; i <= NUM_LEDS; i++){ //Progressive Solid green
+    if(i % 50 == 0)getSatVal();
+    leds[i] = CHSV(hue_start,sat_val,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  for (int i = 0; i <= NUM_LEDS; i++){ //gradient from green
+    if(i % 50 == 0)getSatVal();
+    temp_hue =hue_start + (i * hue_ratio);
+    leds[i] = CHSV(temp_hue,sat_val,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  for (int i = NUM_LEDS; i >= 0; i--){ //Set Solid Purple
+    if(i % 50 == 0)getSatVal();
+    leds[i] = CHSV(temp_hue,sat_val,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  for (int i = NUM_LEDS; i >= 0; i--){//gradient from purple
+    if(i % 50 == 0)getSatVal();
+    temp_hue = hue_finish - ((NUM_LEDS - i) * hue_ratio);
+    leds[i] = CHSV(temp_hue,sat_val,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  
+}  
+
+void SolidToRainbow(){ // GOOD color reference https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors
+  double hue_start = 0;
+  double hue_finish = 160;
+  double temp = (hue_finish - hue_start);
+  double hue_ratio =  temp /  NUM_LEDS;
+  byte temp_hue;
+
+  int delayed = 12;
+  for (int i = 0; i <= NUM_LEDS; i++){ //Progressive Solid green
+    leds[i] = CHSV(hue_start,255,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  for (int i = 0; i <= NUM_LEDS; i++){ //gradient from green
+    temp_hue =hue_start + (i * hue_ratio);
+    leds[i] = CHSV(temp_hue,255,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  for (int i = NUM_LEDS; i >= 0; i--){ //Set Solid Purple
+    leds[i] = CHSV(temp_hue,255,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  for (int i = NUM_LEDS; i >= 0; i--){//gradient from purple
+    temp_hue = hue_finish - ((NUM_LEDS - i) * hue_ratio);
+    leds[i] = CHSV(temp_hue,255,100);
+    FastLED.show();
+    delay(delayed);
+  }
+  
+}  
+void PurplePulse(){//Send Green and Purple flash after loud noise
+  
+  for(int i = 0; i <= NUM_LEDS /2; i++){//Purp Outwards
+    getPDelay();
+    int iter = NUM_LEDS / 2;
+    leds[iter+i] =CHSV(192,255,255);
+    leds[iter-i] =CHSV(192,255,255);
+    FastLED.show();
+    Serial.println(p_delay);
+    delay(p_delay);
+  }
+   //Serial.println("I Got 1st ForLP");
+  for(int i = 0; i <= NUM_LEDS /2; i++){//Green Inwards
+    getPDelay();
+    int iter = NUM_LEDS / 2;
+    leds[i] =CHSV(95,255,255);
+    leds[NUM_LEDS-(1+i)] =CHSV(95,255,255);
+    FastLED.show();
+    delay(p_delay);
+  }
+}
+
+void HueShift(){
+  //byte hue = HUE_INIT;
+  //byte val = map(analogVal, 0, SENSITIVITY+1, 0, MAX_BRIGHTNESS); 
+	//DELAY = map(analogVal, 0, SENSITIVITY+1, 20, 1); 
+	for(int i = 0; i <= NUM_LEDS; i++){ 
+		brightness[NUM_LEDS-i] = brightness[NUM_LEDS-i-1]; 
+	} 
+	 for(int i = 0; i <= NUM_LEDS; i++){ 
+		hue[NUM_LEDS-i] = hue[NUM_LEDS-i-1]; 
+	} 
+	brightness[0] = 100; 
+	byte hue = HUE_INIT; 
+	for(int i = 0; i <= NUM_LEDS; i++){ 
+		leds[i] = CHSV(hue += HUE_CHANGE, 250, brightness[i]); 
+    
+	}
+  for(int i = 0; i <= NUM_LEDS; i++){ 
+    for(int j = 1; j < 15; j++){ //Generate Red Band
+      leds[i+j].nscale8(100);
+    }
+  }
+	delay(30);
+/*
+} 
+  Serial.println("FL Start\n \n \n");
+  for(int i = NUM_LEDS; i>=1; i--){
+    leds[i-1]=CHSV(hue+=2,255,100);
+    Serial.print(hue);
+    Serial.print(" -- ");
+    for(int j = 1; j < 15; j++){ //Generate Red Band
+      
+      leds[i-j]=CHSV(255,255,100);
+    }
+    Serial.println("post black out");
+    
+    delay(20);
+
+  }*/
+}
+  
+
+
+void PurpleGlow(){
+  for(int i=0; i<NUM_LEDS; i++){
+    leds[i]=CRGB(255,0,255);
+    FastLED.setBrightness(i);
+    FastLED.show();
+    //delay(50);
+  
+  }
+  for(int i = NUM_LEDS-1; i >= 0; i--){
+    leds[i] = CRGB(255,0,255);
+    FastLED.setBrightness(i);
+    FastLED.show();
+    delay(20);
+  }
+}
+
+void getPDelay(){
+  analogVal = analogRead(ENVELOPE_PIN); 
+  Serial.print("Analog value pretrans: ");
+  Serial.println(analogVal);
+	if(analogVal > SENSITIVITY){ 
+		analogVal = SENSITIVITY; 
+	} 
+ 
+	if(analogVal < MINVAL){ 
+		analogVal = 0; 
+	} 
+  Serial.print("Analog value: ");
+  Serial.println(analogVal);
+  p_delay = map(analogVal, MINVAL,160+1,20,0);
+
+}
+
+
+void getSatVal(){ // Kind of calibrated to a sensitivity of 300. Might want to make those settings for desired results
+  analogVal = analogRead(ENVELOPE_PIN); 
+	//Serial.println(analogVal); 
+	if(analogVal > 100){ 
+		analogVal = 100; 
+	} 
+ 
+	if(analogVal < MINVAL){ 
+		analogVal = MINVAL; 
+	} 
+  //Serial.print("Analog:  ");
+  //Serial.println(analogVal);
+  sat_val = map(analogVal, MINVAL, 100, 200, 255);
+}
